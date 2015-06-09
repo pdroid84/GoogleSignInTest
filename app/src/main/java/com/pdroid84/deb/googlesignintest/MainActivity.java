@@ -22,7 +22,9 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private boolean mIntentInProgress = false;
 
     ImageView mImageView;
+    Bitmap profImage;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onStart();
         Log.d(TAG, "onStart is called");
         //start the GoogleClient
-        //mGoogleApiClient.connect();
+        mGoogleApiClient.connect();
     }
 
     @Override
@@ -109,11 +112,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Toast.makeText(this, "User is connected!", Toast.LENGTH_LONG).show();
         if (Plus.PeopleApi.getCurrentPerson(mGoogleApiClient) != null) {
             Person currentPerson = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
-            String personName = currentPerson.getDisplayName();
+            final String personName = currentPerson.getDisplayName();
             Person.Image personPhoto = currentPerson.getImage();
-            String personGooglePlusProfile = currentPerson.getUrl();
-            String email = Plus.AccountApi.getAccountName(mGoogleApiClient);
-            Toast.makeText(this,"User name="+personName + " , email = " + email + " and profile = " +personGooglePlusProfile,Toast.LENGTH_LONG).show();
+            final String personGooglePlusProfile = currentPerson.getUrl();
+            final String email = Plus.AccountApi.getAccountName(mGoogleApiClient);
+            Toast.makeText(this, "User name=" + personName + " , email = " + email + " and profile = " + personGooglePlusProfile, Toast.LENGTH_LONG).show();
             Log.d(TAG, "Person Name = " + personName);
             Log.d(TAG, "Person email = " + email);
             Log.d(TAG, "Person Profile= " + personGooglePlusProfile);
@@ -129,19 +132,34 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             return BitmapFactory.decodeStream(in);
                         } catch (Exception e) {
                         /* TODO log error */
-                            Log.d(TAG,"Error while retrieving the profile image");
+                            Log.d(TAG, "Error while retrieving the profile image");
                         }
                         return null;
                     }
+
                     @Override
                     protected void onPostExecute(Bitmap bitmap) {
                         mImageView.setImageBitmap(bitmap);
+                        profImage = bitmap;
+                        callProfileDetails(personName,email,personGooglePlusProfile);
                     }
                 }.execute(image.getUrl());
             }
         }
+
     }
 
+    public void callProfileDetails (String pName, String pEmail, String pProfile) {
+        Intent mIntent = new Intent(this, ProfileDetails.class);
+        Bundle mBundle1 = new Bundle();
+        mBundle1.putString("name", pName);
+        mBundle1.putString("email", pEmail);
+        mBundle1.putString("profile", pProfile);
+        //there will be bit delay in displaying in second activity as the pic is retrieved in AsyncTask
+        mBundle1.putParcelable("profpic",profImage);
+        mIntent.putExtras(mBundle1);
+        startActivity(mIntent);
+    }
     @Override
     public void onConnectionSuspended(int cause) {
         Log.d(TAG,"onConnectionSuspended is called. The cause code is " + cause);
