@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
@@ -21,6 +22,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
+import com.google.android.gms.location.LocationServices;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     ImageView mImageView;
     Bitmap profImage;
+    //Location variable
+    private Location mLastLocation;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                                 .addOnConnectionFailedListener(this)
                                 .addApi(Plus.API)
                                 .addScope(new Scope("profile"))
+                                .addApi(LocationServices.API)
                                 .build();
 
         findViewById(R.id.sign_in_button).setOnClickListener(this);
@@ -120,6 +125,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Log.d(TAG, "Person Name = " + personName);
             Log.d(TAG, "Person email = " + email);
             Log.d(TAG, "Person Profile= " + personGooglePlusProfile);
+            //Display the location related details
+            Log.d(TAG, "Location detail section started here....");
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            if(mLastLocation != null) {
+                String mLatitude = String.valueOf(mLastLocation.getLatitude());
+                String mLongitude = String.valueOf(mLastLocation.getLongitude());
+                Log.d(TAG, "The values are -> Laitude= "+mLatitude + " and Longitude= "+mLongitude);
+                Toast.makeText(this,"The values are -> Laitude= "+mLatitude + " and Longitude= "+mLongitude,Toast.LENGTH_LONG).show();
+            }
+            else
+            {
+                Log.d(TAG, "The location is NULL");
+            }
+            Log.d(TAG, "Location detail section ended here....");
             mImageView = (ImageView) findViewById(R.id.prof_pic);
             if (currentPerson.hasImage()) {
                 Person.Image image = currentPerson.getImage();
